@@ -134,26 +134,14 @@ GameObject:
   - component: {fileID: 597455708}
   - component: {fileID: 597455707}
   - component: {fileID: 597455706}
-  - component: {fileID: 597455705}
+  - component: {fileID: 597455709}
   m_Layer: 0
   m_Name: Terrain
-  m_TagString: Untagged
+  m_TagString: Terrain
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
   m_IsActive: 1
---- !u!114 &597455705
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 597455704}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89496cc648a564644a9936d2fb6cb013, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!154 &597455706
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -169,7 +157,7 @@ TerrainCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_ProvidesContacts: 0
+  m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 91d92f95f49349448a7b5e388bf531ed, type: 2}
@@ -228,6 +216,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &597455709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597455704}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89496cc648a564644a9936d2fb6cb013, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  randomHeightRange: {x: 0, y: 0.1}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

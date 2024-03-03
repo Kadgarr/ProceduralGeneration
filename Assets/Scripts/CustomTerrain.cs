@@ -1,11 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
+    public Vector2 randomHeightRange = new Vector2(0, 0.1f);
+
+    public void RandomTerrain()
+    {
+
+    }
+
     private void Awake()
     {
         SerializedObject tagManager = new SerializedObject(
