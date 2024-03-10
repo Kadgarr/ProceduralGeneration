@@ -229,6 +229,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   randomHeightRange: {x: 0, y: 0.1}
+  terrain: {fileID: 597455707}
+  terrainData: {fileID: 15600000, guid: 91d92f95f49349448a7b5e388bf531ed, type: 2}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

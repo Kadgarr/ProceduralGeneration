@@ -38,6 +38,12 @@ public class CustomTerrainEditor : Editor
             }
         }
 
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        if(GUILayout.Button("Reset Terrain"))
+        {
+            terrain.ResetTerrain();
+        }
+
         serializedObject.ApplyModifiedProperties();
     }
     // Start is called before the first frame update
