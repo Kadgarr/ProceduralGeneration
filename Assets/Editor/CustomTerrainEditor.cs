@@ -13,10 +13,15 @@ public class CustomTerrainEditor : Editor
     SerializedProperty randomHeightRange;
     SerializedProperty heightMapScale;
     SerializedProperty heightMapImage;
+    SerializedProperty perlinXScale;
+    SerializedProperty perlinYScale;
+    SerializedProperty perlinOffsetX;
+    SerializedProperty perlingOffsetY;
 
     //fold outs===========
     bool showRandom = false;
-    bool showLoadHeights = false; 
+    bool showLoadHeights = false;
+    bool showPerlinNoise = false;
 
 
     private void OnEnable()
@@ -24,6 +29,10 @@ public class CustomTerrainEditor : Editor
         randomHeightRange = serializedObject.FindProperty("randomHeightRange");
         heightMapScale = serializedObject.FindProperty("heightMapScale");
         heightMapImage = serializedObject.FindProperty("heightMapImage");
+        perlinXScale = serializedObject.FindProperty("perlinXScale");
+        perlinYScale = serializedObject.FindProperty("perlinYScale");
+        perlinOffsetX = serializedObject.FindProperty("perlinOffsetX");
+        perlingOffsetY = serializedObject.FindProperty("perlingOffsetY");
     }
 
     public override void OnInspectorGUI()
@@ -33,6 +42,26 @@ public class CustomTerrainEditor : Editor
         CustomTerrain terrain = (CustomTerrain)target;
 
         showRandom = EditorGUILayout.Foldout(showRandom, "Random");
+
+        showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load Heights");
+
+        showPerlinNoise = EditorGUILayout.Foldout(showPerlinNoise, "Single Perlin Noise");
+
+        if (showPerlinNoise)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Perlin Noise", EditorStyles.boldLabel);
+            EditorGUILayout.Slider(perlinXScale, 0, 1, new GUIContent("X Scale"));
+            EditorGUILayout.Slider(perlinYScale, 0, 1, new GUIContent("Y Scale"));
+            EditorGUILayout.IntSlider(perlinOffsetX, 0, 10000, new GUIContent("Offset X"));
+            EditorGUILayout.IntSlider(perlingOffsetY, 0, 10000, new GUIContent("Offset Y"));
+
+            if (GUILayout.Button("Perlin"))
+            {
+                terrain.Perlin();
+            }
+        }
+
         if (showRandom)
         {
             EditorGUILayout.LabelField("",GUI.skin.horizontalSlider);
@@ -43,8 +72,6 @@ public class CustomTerrainEditor : Editor
                 terrain.RandomTerrain();
             }
         }
-
-        showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load Heights");
         if (showLoadHeights)
         {
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
