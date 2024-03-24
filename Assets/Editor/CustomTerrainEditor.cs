@@ -16,7 +16,11 @@ public class CustomTerrainEditor : Editor
     SerializedProperty perlinXScale;
     SerializedProperty perlinYScale;
     SerializedProperty perlinOffsetX;
-    SerializedProperty perlingOffsetY;
+    SerializedProperty perlinOffsetY;
+    SerializedProperty perlinOctaves;
+    SerializedProperty perlinPersistance;
+    SerializedProperty perlinHeightScale;
+    SerializedProperty resetTerrain;
 
     //fold outs===========
     bool showRandom = false;
@@ -32,7 +36,10 @@ public class CustomTerrainEditor : Editor
         perlinXScale = serializedObject.FindProperty("perlinXScale");
         perlinYScale = serializedObject.FindProperty("perlinYScale");
         perlinOffsetX = serializedObject.FindProperty("perlinOffsetX");
-        perlingOffsetY = serializedObject.FindProperty("perlingOffsetY");
+        perlinOffsetY = serializedObject.FindProperty("perlinOffsetY");
+        perlinOctaves = serializedObject.FindProperty("perlinOctaves");
+        perlinPersistance = serializedObject.FindProperty("perlinPersistance");
+        perlinHeightScale = serializedObject.FindProperty("perlinHeightScale");
     }
 
     public override void OnInspectorGUI()
@@ -41,12 +48,8 @@ public class CustomTerrainEditor : Editor
 
         CustomTerrain terrain = (CustomTerrain)target;
 
-        showRandom = EditorGUILayout.Foldout(showRandom, "Random");
-
-        showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load Heights");
 
         showPerlinNoise = EditorGUILayout.Foldout(showPerlinNoise, "Single Perlin Noise");
-
         if (showPerlinNoise)
         {
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
@@ -54,13 +57,19 @@ public class CustomTerrainEditor : Editor
             EditorGUILayout.Slider(perlinXScale, 0, 1, new GUIContent("X Scale"));
             EditorGUILayout.Slider(perlinYScale, 0, 1, new GUIContent("Y Scale"));
             EditorGUILayout.IntSlider(perlinOffsetX, 0, 10000, new GUIContent("Offset X"));
-            EditorGUILayout.IntSlider(perlingOffsetY, 0, 10000, new GUIContent("Offset Y"));
+            EditorGUILayout.IntSlider(perlinOffsetY, 0, 10000, new GUIContent("Offset Y"));
+            EditorGUILayout.IntSlider(perlinOctaves, 1, 10, new GUIContent("Octaves"));
+            EditorGUILayout.Slider(perlinPersistance, 0.1f, 10, new GUIContent("Persistance"));
+            EditorGUILayout.Slider(perlinHeightScale, 0, 1, new GUIContent("Height Scale"));
 
             if (GUILayout.Button("Perlin"))
             {
                 terrain.Perlin();
             }
         }
+
+
+        showRandom = EditorGUILayout.Foldout(showRandom, "Random");
 
         if (showRandom)
         {
@@ -72,6 +81,9 @@ public class CustomTerrainEditor : Editor
                 terrain.RandomTerrain();
             }
         }
+
+        showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load Heights");
+
         if (showLoadHeights)
         {
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
@@ -92,15 +104,5 @@ public class CustomTerrainEditor : Editor
 
         serializedObject.ApplyModifiedProperties();
     }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    
 }

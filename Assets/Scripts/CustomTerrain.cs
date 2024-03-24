@@ -18,8 +18,10 @@ public class CustomTerrain : MonoBehaviour
     public float perlinXScale = 0.01f;
     public float perlinYScale = 0.01f;
     public int perlinOffsetX = 0;
-    public int perlingOffsetY = 0;
-
+    public int perlinOffsetY = 0;
+    public int perlinOctaves = 3;
+    public float perlinPersistance = 8;
+    public float perlinHeightScale = 0.09f;
 
     public void Perlin()
     {
@@ -29,8 +31,10 @@ public class CustomTerrain : MonoBehaviour
         {
             for(int x=0; x < terrainData.heightmapHeight; x++)
             {
-                heightMap[x,y] = Mathf.PerlinNoise((x+perlinOffsetX)*perlinXScale,
-                                                    (y+perlingOffsetY)*perlinYScale);
+                heightMap[x, y] += Utils.fBM((x + perlinOffsetX) * perlinXScale,
+                                            (y + perlinOffsetY) * perlinYScale,
+                                            perlinOctaves,
+                                            perlinPersistance) * perlinHeightScale;
             }
         }
 
