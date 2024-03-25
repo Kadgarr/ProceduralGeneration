@@ -114,6 +114,38 @@ public class CustomTerrain : MonoBehaviour
         perlinParameters = keptPerlinParameters;
     }
 
+    public void Voronoi()
+    {
+        float[,] heightMap = GetHeightMap();
+        float falloff = 0.5f;
+
+        //Vector3 peak = new Vector3(UnityEngine.Random.Range(0, terrainData.heightmapWidth),
+        //                           UnityEngine.Random.Range(0.01f,0.01f),
+        //                           UnityEngine.Random.Range(0, terrainData.heightmapHeight)
+        //                            );
+
+        Vector3 peak = new Vector3(256.0f, 0.2f, 256.0f);
+
+
+        Vector2 peakLocation = new Vector2(peak.x, peak.z);
+        float maxDistance = Vector2.Distance(new Vector2(0, 0), new Vector2(terrainData.heightmapWidth,
+                                                                              terrainData.heightmapHeight));
+        for (int y = 0; y < terrainData.heightmapHeight; y++)
+        {
+            for (int x = 0; x < terrainData.heightmapWidth; x++)
+            {
+                if (!(x == peak.x && y == peak.z))
+                {
+                    float distanceToPeak = Vector2.Distance(peakLocation, new Vector2(x, y))*falloff;
+                    heightMap[x, y]=peak.y-(distanceToPeak/maxDistance);
+                    
+
+                }
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
     public void RandomTerrain()
     {
         float[,] heightMap;

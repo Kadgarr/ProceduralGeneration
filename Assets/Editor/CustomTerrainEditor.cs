@@ -22,15 +22,17 @@ public class CustomTerrainEditor : Editor
     SerializedProperty perlinHeightScale;
     SerializedProperty resetTerrain;
 
+
     GUITableState perlinParameterTable;
     SerializedProperty perlinParameters;
+   
 
     //fold outs===========
     bool showRandom = false;
     bool showLoadHeights = false;
     bool showPerlinNoise = false;
     bool showMultiplePerlin = false;
-
+    bool showVoronoi = false;
 
     private void OnEnable()
     {
@@ -124,6 +126,15 @@ public class CustomTerrainEditor : Editor
             if(GUILayout.Button("Load Texture"))
             {
                 terrain.LoadTexture();
+            }
+        }
+
+        showVoronoi = EditorGUILayout.Foldout(showVoronoi, "Voronoi");
+        if (showVoronoi)
+        {
+            if (GUILayout.Button("Voronoi"))
+            {
+                terrain.Voronoi();
             }
         }
 
