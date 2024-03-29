@@ -31,6 +31,7 @@ public class CustomTerrainEditor : Editor
     SerializedProperty MPDHeightMax;
     SerializedProperty MPDHeightDampner;
     SerializedProperty MPDRoughness;
+    SerializedProperty smoothAmount;
 
     GUITableState perlinParameterTable;
     SerializedProperty perlinParameters;
@@ -42,6 +43,7 @@ public class CustomTerrainEditor : Editor
     bool showMultiplePerlin = false;
     bool showVoronoi = false;
     bool showMPD = false;
+    bool showSmooth = false;
 
     void OnEnable()
     {
@@ -145,6 +147,17 @@ public class CustomTerrainEditor : Editor
             }
         }
 
+        if (showSmooth)
+        {
+
+            EditorGUILayout.IntSlider(smoothAmount, 1, 10, new GUIContent("smoothAmount"));
+            if (GUILayout.Button("Smooth"))
+            {
+
+                terrain.Smooth();
+            }
+        }
+
         showVoronoi = EditorGUILayout.Foldout(showVoronoi, "Voronoi");
         if (showVoronoi)
         {
@@ -175,7 +188,16 @@ public class CustomTerrainEditor : Editor
             }
         }
 
+        showSmooth = EditorGUILayout.Foldout(showSmooth, "Smooth Terrain");
+        if (showSmooth)
+        {
 
+            if (GUILayout.Button("Smooth"))
+            {
+
+                terrain.Smooth();
+            }
+        }
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         if (GUILayout.Button("Reset Terrain"))
         {
