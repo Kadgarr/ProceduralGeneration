@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -7,25 +8,29 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
-    public Vector2 randomHeightRange = new Vector2(0, 0.1f);
-    public Texture2D heightMapImage;
-    public Vector3 heightMapScale = new Vector3(1, 1, 1);
+    int hmr { get { return terrainData.heightmapResolution; } } //heightmap resolution
+    bool isRidged = false;
 
+    public Vector2 randomHeightRange = new Vector2(0.0f, 0.1f);
+    public Texture2D heightMapImage;
+    public Vector3 heightMapScale = new Vector3(1.0f, 1.0f, 1.0f);
     public bool resetTerrain = true;
 
-    //PERLIN NOISE ----------------------------------------------
+    // Perlin Noise ***********************************************
     public float perlinXScale = 0.01f;
     public float perlinYScale = 0.01f;
     public int perlinOffsetX = 0;
     public int perlinOffsetY = 0;
     public int perlinOctaves = 3;
-    public float perlinPersistance = 8;
-    public float perlinHeightScale = 0.09f;
+    public float perlinPersistance = 8.0f;
+    public float perlinHeightScale = 0.009f;
 
-    //MULTIPLE PERLIN --------------------
+    // Multiple Perlin Noise ***********************************************
+    // Multiple Perlin Noise *************************************
     [System.Serializable]
     public class PerlinParameters
     {
+
         public float mPerlinXScale = 0.01f;
         public float mPerlinYScale = 0.01f;
         public int mPerlinOctaves = 3;
@@ -36,247 +41,325 @@ public class CustomTerrain : MonoBehaviour
         public bool remove = false;
     }
 
-    public List<PerlinParameters> perlinParameters = new List<PerlinParameters>()
-    {
-        new PerlinParameters()
-    };
-
-    //VORONOI
+    // Voronoi ************************************************
     public float voronoiFallOff = 0.2f;
     public float voronoiDropOff = 0.6f;
     public float voronoiMinHeight = 0.1f;
     public float voronoiMaxHeight = 0.5f;
     public int voronoiPeaks = 5;
-    public enum VoronoiType { Linear = 0, Power = 1, SinPow = 2, Combined = 3 }
     public VoronoiType voronoiType = VoronoiType.Linear;
+    public enum VoronoiType
+    {
 
+        Linear,
+        Power,
+        SinPow,
+        Combined,
+        Perlin
+    }
+
+    public List<PerlinParameters> perlinParameters = new List<PerlinParameters>() {
+
+        new PerlinParameters()
+    };
 
     public Terrain terrain;
     public TerrainData terrainData;
 
-    float[,] GetHeightMap()
-    {
-        if (!resetTerrain)
-        {
-            return terrainData.GetHeights(0, 0, terrainData.heightmapWidth,
-                                                terrainData.heightmapHeight);
-        }
-        else
-            return new float[terrainData.heightmapWidth,
-                             terrainData.heightmapHeight];
-
-    }
-
-    public void Voronoi()
-    {
-        float[,] heightMap = GetHeightMap();
-
-        for (int p = 0; p < voronoiPeaks; p++)
-        {
-            Vector3 peak = new Vector3(UnityEngine.Random.Range(0, terrainData.heightmapWidth),
-                                       UnityEngine.Random.Range(voronoiMinHeight, voronoiMaxHeight),
-                                       UnityEngine.Random.Range(0, terrainData.heightmapHeight)
-                                      );
-
-            if (heightMap[(int)peak.x, (int)peak.z] < peak.y)
-                heightMap[(int)peak.x, (int)peak.z] = peak.y;
-            else
-                continue;
-
-            Vector2 peakLocation = new Vector2(peak.x, peak.z);
-            float maxDistance = Vector2.Distance(new Vector2(0, 0), new Vector2(terrainData.heightmapWidth,
-                                                                              terrainData.heightmapHeight));
-            for (int y = 0; y < terrainData.heightmapHeight; y++)
-            {
-                for (int x = 0; x < terrainData.heightmapWidth; x++)
-                {
-                    if (!(x == peak.x && y == peak.z))
-                    {
-                        float distanceToPeak = Vector2.Distance(peakLocation, new Vector2(x, y)) / maxDistance;
-                        float h;
-
-                        if (voronoiType == VoronoiType.Combined)
-                        {
-                            h = peak.y - distanceToPeak * voronoiFallOff -
-                                Mathf.Pow(distanceToPeak, voronoiDropOff); //combined
-                        }
-                        else if (voronoiType == VoronoiType.Power)
-                        {
-                            h = peak.y - Mathf.Pow(distanceToPeak, voronoiDropOff) * voronoiFallOff; //power
-                        }
-                        else if (voronoiType == VoronoiType.SinPow)
-                        {
-                            h = peak.y - Mathf.Pow(distanceToPeak * 3, voronoiFallOff) -
-                                    Mathf.Sin(distanceToPeak * 2 * Mathf.PI) / voronoiDropOff; //sinpow
-                        }
-                        else
-                        {
-                            h = peak.y - distanceToPeak * voronoiFallOff; //linear
-                        }
-
-                        if (heightMap[x, y] < h)
-                            heightMap[x, y] = h;
-                    }
-
-                }
-            }
-        }
-        terrainData.SetHeights(0, 0, heightMap);
-
-    }
-
-
-    //interesting results
-    //distanceToPeak = 0.5f + Mathf.Sin(distanceToPeak * Mathf.PI*0.1f)*10.0f;
-    //float h = peak.y - Mathf.Log(distanceToPeak * 6 + 1) * fallOff;
-
-
-
     public void Perlin()
     {
-        float[,] heightMap = GetHeightMap();
 
-        for (int y = 0; y < terrainData.heightmapHeight; y++)
+        float[,] heightMap = GetHeightMap();
+        for (int y = 0; y < hmr; ++y)
         {
-            for (int x = 0; x < terrainData.heightmapWidth; x++)
-            {
+
+
+            for (int x = 0; x < hmr; ++x)
+
                 heightMap[x, y] += Utils.fBM((x + perlinOffsetX) * perlinXScale,
                                             (y + perlinOffsetY) * perlinYScale,
                                             perlinOctaves,
                                             perlinPersistance) * perlinHeightScale;
-            }
         }
-
         terrainData.SetHeights(0, 0, heightMap);
     }
 
     public void MultiplePerlinTerrain()
     {
+
         float[,] heightMap = GetHeightMap();
-        for (int y = 0; y < terrainData.heightmapHeight; y++)
+        for (int y = 0; y < hmr; ++y)
         {
-            for (int x = 0; x < terrainData.heightmapWidth; x++)
+
+            for (int x = 0; x < hmr; ++x)
             {
+
                 foreach (PerlinParameters p in perlinParameters)
                 {
+
                     heightMap[x, y] += Utils.fBM((x + p.mPerlinOffsetX) * p.mPerlinXScale,
-                                                 (y + p.mPerlinOffsetY) * p.mPerlinYScale,
-                                                    p.mPerlinOctaves,
-                                                    p.mPerlinPersistance) * p.mPerlinHeightScale;
+                                                (y + p.mPerlinOffsetY) * p.mPerlinYScale,
+                                                p.mPerlinOctaves,
+                                                p.mPerlinPersistance) * p.mPerlinHeightScale;
                 }
             }
         }
         terrainData.SetHeights(0, 0, heightMap);
     }
-
     public void AddNewPerlin()
     {
+
         perlinParameters.Add(new PerlinParameters());
     }
 
     public void RemovePerlin()
     {
-        List<PerlinParameters> keptPerlinParameters = new List<PerlinParameters>();
-        for (int i = 0; i < perlinParameters.Count; i++)
-        {
-            if (!perlinParameters[i].remove)
-            {
-                keptPerlinParameters.Add(perlinParameters[i]);
-            }
-        }
-        if (keptPerlinParameters.Count == 0) //don't want to keep any
-        {
-            keptPerlinParameters.Add(perlinParameters[0]); //add at least 1
-        }
-        perlinParameters = keptPerlinParameters;
+
+        for (int i = perlinParameters.Count - 1; i >= 1; --i)
+            if (perlinParameters[i].remove) perlinParameters.RemoveAt(i);
     }
 
     public void RandomTerrain()
     {
+
+        //int hmr = terrainData.heightmapResolution;
         float[,] heightMap = GetHeightMap();
 
-        for (int x = 0; x < terrainData.heightmapWidth; x++)
+        for (int x = 0; x < hmr; ++x)
         {
-            for (int z = 0; z < terrainData.heightmapHeight; z++)
+            for (int z = 0; z < hmr; ++z)
             {
+
                 heightMap[x, z] += UnityEngine.Random.Range(randomHeightRange.x, randomHeightRange.y);
             }
         }
         terrainData.SetHeights(0, 0, heightMap);
-
     }
 
     public void LoadTexture()
     {
+
+        //float[,] heightMap = new float[hmr, hmr]; //terrainData.GetHeights(0, 0, hmr, hmr);
         float[,] heightMap = GetHeightMap();
 
-        for (int x = 0; x < terrainData.heightmapWidth; x++)
+        for (int x = 0; x < hmr; ++x)
         {
-            for (int z = 0; z < terrainData.heightmapHeight; z++)
+            for (int z = 0; z < hmr; ++z)
             {
+
                 heightMap[x, z] += heightMapImage.GetPixel((int)(x * heightMapScale.x),
-                                                          (int)(z * heightMapScale.z)).grayscale
-                                                            * heightMapScale.y;
+                    (int)(z * heightMapScale.z)).grayscale * heightMapScale.y;
             }
         }
         terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    public void RidgeNoise()
+    {
+
+        //ResetTerrain();
+        MultiplePerlinTerrain();
+        float[,] heightMap = GetHeightMap();
+
+        for (int y = 0; y < hmr; ++y)
+        {
+
+            for (int x = 0; x < hmr; ++x)
+            {
+
+                heightMap[x, y] = 1 - Mathf.Abs(heightMap[x, y] - 0.5f);
+            }
+        }
+        isRidged = !isRidged;
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    public void Voronoi()
+    {
+
+        float[,] heightMap = GetHeightMap();
+
+        for (int p = 0; p < voronoiPeaks; ++p)
+        {
+
+            Vector3 peak = new Vector3(UnityEngine.Random.Range(0, hmr),
+                                       UnityEngine.Random.Range(voronoiMinHeight, voronoiMaxHeight),
+                                       UnityEngine.Random.Range(0, hmr));
+
+            if (heightMap[(int)peak.x, (int)peak.z] < peak.y)
+            {
+
+                heightMap[(int)peak.x, (int)peak.z] = peak.y;
+            }
+            else
+            {
+
+                continue;
+            }
+
+            Vector2 peakLocation = new Vector2(peak.x, peak.z);
+            float maxDistance = Vector2.Distance(new Vector2(0.0f, 0.0f), new Vector2(hmr, hmr));
+
+            for (int y = 0; y < hmr; ++y)
+            {
+
+                for (int x = 0; x < hmr; ++x)
+                {
+
+                    if (!(x == peak.x && y == peak.z))
+                    {
+
+                        float distanceToPeak = Vector2.Distance(peakLocation, new Vector2(x, y)) / maxDistance;
+                        float h;
+
+                        if (voronoiType == VoronoiType.Combined)
+                        {
+
+                            h = peak.y - distanceToPeak * voronoiFallOff -
+                                MathF.Pow(distanceToPeak, voronoiDropOff); // Combined
+                        }
+                        else if (voronoiType == VoronoiType.Power)
+                        {
+
+                            h = peak.y - Mathf.Pow(distanceToPeak, voronoiDropOff) * voronoiFallOff;    // Power
+                        }
+                        else if (voronoiType == VoronoiType.SinPow)
+                        {
+
+                            h = peak.y - Mathf.Pow(distanceToPeak * 3.0f, voronoiFallOff) -
+                                Mathf.Sin(distanceToPeak * 2.0f * Mathf.PI) / voronoiDropOff;   // SinPow
+                        }
+                        else if (voronoiType == VoronoiType.Perlin)
+                        {
+
+                            h = (peak.y - distanceToPeak * voronoiFallOff) + Utils.fBM((x + perlinOffsetX) * perlinXScale,
+                                            (y + perlinOffsetY) * perlinYScale,
+                                            perlinOctaves,
+                                            perlinPersistance) * perlinHeightScale;    // Perlin
+                        }
+                        else
+                        {
+
+                            h = peak.y - distanceToPeak * voronoiFallOff;   // Linear
+                        }
+
+                        if (heightMap[x, y] < h)
+                        {
+
+                            heightMap[x, y] = h;
+                        }
+                    }
+                }
+            }
+        }
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    public float[,] GetHeightMap()
+    {
+
+        if (!resetTerrain)
+        {
+
+            return terrainData.GetHeights(0, 0, hmr, hmr);
+        }
+        else
+        {
+
+            return new float[hmr, hmr];
+        }
     }
 
     public void ResetTerrain()
     {
-        float[,] heightMap;
-        heightMap = new float[terrainData.heightmapWidth, terrainData.heightmapHeight];
-        for (int x = 0; x < terrainData.heightmapWidth; x++)
-        {
-            for (int z = 0; z < terrainData.heightmapHeight; z++)
-            {
-                heightMap[x, z] = 0;
-            }
-        }
-        terrainData.SetHeights(0, 0, heightMap);
 
+        float[,] heightMap = new float[hmr, hmr];
+        terrainData.SetHeights(0, 0, heightMap);
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
-        Debug.Log("Initialising Terrain Data");
+
+        Debug.Log("Initialising Tertain Data");
+        //Debug.Log(terrainData.size);
+        //terrainData.size;
         terrain = this.GetComponent<Terrain>();
         terrainData = Terrain.activeTerrain.terrainData;
     }
 
-    void Awake()
+    public enum TagType { Tag, Layer };
+    [SerializeField]
+    int terrainLayer = 0;
+
+    private void Start()
     {
-        SerializedObject tagManager = new SerializedObject(
-                              AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+
+        SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
         SerializedProperty tagsProp = tagManager.FindProperty("tags");
 
-        AddTag(tagsProp, "Terrain");
-        AddTag(tagsProp, "Cloud");
-        AddTag(tagsProp, "Shore");
+        AddTag(tagsProp, "Terrain", TagType.Tag);
+        AddTag(tagsProp, "Cloud", TagType.Tag);
+        AddTag(tagsProp, "Shore", TagType.Tag);
 
-        //apply tag changes to tag database
+        // Apply tag changes to tag database
         tagManager.ApplyModifiedProperties();
 
-        //take this object
+        SerializedProperty layerProp = tagManager.FindProperty("layers");
+        terrainLayer = AddTag(layerProp, "Terrain", TagType.Layer);
+        tagManager.ApplyModifiedProperties();
+
+        // Tag this object
         this.gameObject.tag = "Terrain";
+        this.gameObject.layer = terrainLayer;
     }
 
-    void AddTag(SerializedProperty tagsProp, string newTag)
+    int AddTag(SerializedProperty tagsProp, string newTag, TagType tType)
     {
+
         bool found = false;
-        //ensure the tag doesn't already exist
-        for (int i = 0; i < tagsProp.arraySize; i++)
+
+        // Ensure the tag doesn't already exist
+        for (int i = 0; i < tagsProp.arraySize; ++i)
         {
+
             SerializedProperty t = tagsProp.GetArrayElementAtIndex(i);
-            if (t.stringValue.Equals(newTag)) { found = true; break; }
+            if (t.stringValue.Equals(newTag))
+            {
+
+                found = true;
+                return i;
+            }
         }
-        //add your new tag
-        if (!found)
+
+        // Add your new tag
+        if (!found && tType == TagType.Tag)
         {
+
             tagsProp.InsertArrayElementAtIndex(0);
             SerializedProperty newTagProp = tagsProp.GetArrayElementAtIndex(0);
             newTagProp.stringValue = newTag;
         }
+
+        // Add new layer
+        else if (!found && tType == TagType.Layer)
+        {
+
+            for (int j = 8; j < tagsProp.arraySize; ++j)
+            {
+
+                SerializedProperty newLayer = tagsProp.GetArrayElementAtIndex(j);
+                // Add layer in next slot
+                if (newLayer.stringValue == "")
+                {
+
+                    Debug.Log("Adding New Layer: " + newTag);
+                    newLayer.stringValue = newTag;
+                    return j;
+                }
+            }
+        }
+        return -1;
     }
 
 }
