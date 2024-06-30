@@ -36,6 +36,9 @@ public class CustomTerrainEditor : Editor
     GUITableState perlinParameterTable;
     SerializedProperty perlinParameters;
 
+    GUITableState splatMapTable;
+    SerializedProperty splatHeights;
+
     //fold outs ------------
     bool showRandom = false;
     bool showLoadHeights = false;
@@ -44,6 +47,7 @@ public class CustomTerrainEditor : Editor
     bool showVoronoi = false;
     bool showMPD = false;
     bool showSmooth = false;
+    bool showSplatMaps = false;
 
     void OnEnable()
     {
@@ -186,6 +190,30 @@ public class CustomTerrainEditor : Editor
 
                 terrain.MidPointDisplacement();
             }
+        }
+
+        showSplatMaps = EditorGUILayout.Foldout(showSplatMaps, "Splat Maps");
+
+        if (showSplatMaps)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Splat Maps", EditorStyles.boldLabel);
+            splatMapTable = GUITableLayout.DrawTable(splatMapTable, serializedObject.FindProperty("splatHeights")) ;
+            GUILayout.Space(20);
+            EditorGUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("-"))
+            {
+                terrain.RemoveSplatHeights();
+
+            }
+            if (GUILayout.Button("Apply SplatMaps"))
+            {
+
+                terrain.SplatMaps();
+            }
+
+            EditorGUILayout.EndHorizontal();
         }
 
         showSmooth = EditorGUILayout.Foldout(showSmooth, "Smooth Terrain");

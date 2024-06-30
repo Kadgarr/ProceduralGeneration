@@ -16,6 +16,38 @@ public class CustomTerrain : MonoBehaviour
     public Vector3 heightMapScale = new Vector3(1.0f, 1.0f, 1.0f);
     public bool resetTerrain = true;
 
+    // Splatmaps **********************************************
+    [System.Serializable]
+    public class SplatHeights
+    {
+
+        public Texture2D texture = null;
+        public float minHeight = 0.1f;
+        public float maxHeight = 0.2f;
+        public bool remove = false;
+    }
+    public List<SplatHeights> splatHeights = new List<SplatHeights>() {
+
+        new SplatHeights()
+    };
+
+    public void SplatMaps()
+    {
+
+    }
+
+    public void AddNewSplatHeight()
+    {
+
+    }
+
+    public void RemoveSplatHeights()
+    {
+
+
+    }
+
+
     // Perlin Noise ***********************************************
     public float perlinXScale = 0.01f;
     public float perlinYScale = 0.01f;
