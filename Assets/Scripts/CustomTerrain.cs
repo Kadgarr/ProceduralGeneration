@@ -34,17 +34,51 @@ public class CustomTerrain : MonoBehaviour
     public void SplatMaps()
     {
 
+        TerrainLayer[] newSplatPrototypes;
+        newSplatPrototypes = new TerrainLayer[splatHeights.Count];
+        int spIndex = 0;
+
+        foreach (SplatHeights sh in splatHeights)
+        {
+            Debug.Log("1");
+            newSplatPrototypes[spIndex] = new TerrainLayer
+            {
+                 
+            diffuseTexture = sh.texture,
+            };
+            
+            newSplatPrototypes[spIndex].diffuseTexture.Apply(true);
+            string path = "Assets/New Terrain Layer " + spIndex + ".terrainlayer";
+            AssetDatabase.CreateAsset(newSplatPrototypes[spIndex], path);
+            spIndex++;
+            Selection.activeObject = this.gameObject;
+        }
+        Debug.Log("2");
+        terrainData.terrainLayers = newSplatPrototypes;
     }
 
     public void AddNewSplatHeight()
     {
 
+        splatHeights.Add(new SplatHeights());
     }
 
     public void RemoveSplatHeights()
     {
 
-
+        List<SplatHeights> keptSplatHeights = new List<SplatHeights>();
+        for (int i = 0; i < splatHeights.Count; i++)
+        {
+            if (!splatHeights[i].remove)
+            {
+                keptSplatHeights.Add(splatHeights[i]);
+            }
+        }
+        if (keptSplatHeights.Count == 0) //don't want to keep any
+        {
+            keptSplatHeights.Add(splatHeights[0]); //add at least 1
+        }
+        splatHeights = keptSplatHeights;
     }
 
 

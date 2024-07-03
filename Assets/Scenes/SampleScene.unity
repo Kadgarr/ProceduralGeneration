@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 597455707}
   - component: {fileID: 597455706}
   - component: {fileID: 597455709}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Terrain
   m_TagString: Terrain
   m_Icon: {fileID: 0}
@@ -230,13 +230,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   randomHeightRange: {x: 0, y: 0.1}
   heightMapImage: {fileID: 2800000, guid: d8607a3354af36c45b13d709ad355f9f, type: 3}
-  heightMapScale: {x: 2, y: 0.1, z: 2}
+  heightMapScale: {x: 1, y: 1, z: 1}
+  resetTerrain: 1
+  splatHeights:
+  - texture: {fileID: 2800000, guid: 94e5dd2784ae3a44a930dba86cba9f6e, type: 3}
+    minHeight: 0.1
+    maxHeight: 0.2
+    remove: 1
+  perlinXScale: 0.015
+  perlinYScale: 0.148
+  perlinOffsetX: 8410
+  perlinOffsetY: 627
+  perlinOctaves: 1
+  perlinPersistance: 5.66
+  perlinHeightScale: 0.151
+  MPDHeightMin: -5
+  MPDHeightMax: 3
+  MPDHeightDampner: 2
+  MPDRoughness: 2
+  smoothAmount: 1
+  voronoiFallOff: 1.8
+  voronoiDropOff: 2.71
+  voronoiMinHeight: 0.25
+  voronoiMaxHeight: 0.865
+  voronoiPeaks: 5
+  voronoiType: 3
+  perlinParameters:
+  - mPerlinXScale: 0.1
+    mPerlinYScale: 0.01
+    mPerlinOctaves: 3
+    mPerlinPersistance: 8
+    mPerlinHeightScale: 0.5
+    mPerlinOffsetX: 0
+    mPerlinOffsetY: 0
+    remove: 0
   terrain: {fileID: 597455707}
   terrainData: {fileID: 15600000, guid: 91d92f95f49349448a7b5e388bf531ed, type: 2}
-  perlinXScale: 0.01
-  perlinYScale: 0.02
-  perlinOffsetX: 327
-  perlingOffsetY: 0
+  terrainLayer: 8
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
