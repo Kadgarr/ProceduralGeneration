@@ -1,13 +1,13 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
+using System.Collections.Generic;
 
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
+
     int hmr { get { return terrainData.heightmapResolution; } } //heightmap resolution
     bool isRidged = false;
 
@@ -31,30 +31,149 @@ public class CustomTerrain : MonoBehaviour
         new SplatHeights()
     };
 
+    // Perlin Noise ***********************************************
+    public float perlinXScale = 0.01f;
+    public float perlinYScale = 0.01f;
+    public int perlinOffsetX = 0;
+    public int perlinOffsetY = 0;
+    public int perlinOctaves = 3;
+    public float perlinPersistance = 8.0f;
+    public float perlinHeightScale = 0.009f;
+
+    // Multiple Perlin Noise ***********************************************
+    // Multiple Perlin Noise *************************************
+    [System.Serializable]
+    public class PerlinParameters
+    {
+
+        public float mPerlinXScale = 0.01f;
+        public float mPerlinYScale = 0.01f;
+        public int mPerlinOctaves = 3;
+        public float mPerlinPersistance = 8;
+        public float mPerlinHeightScale = 0.09f;
+        public int mPerlinOffsetX = 0;
+        public int mPerlinOffsetY = 0;
+        public bool remove = false;
+    }
+
+    public List<PerlinParameters> perlinParameters = new List<PerlinParameters>() {
+
+        new PerlinParameters()
+    };
+
+    // Voronoi ************************************************
+    public float voronoiFallOff = 0.2f;
+    public float voronoiDropOff = 0.6f;
+    public float voronoiMinHeight = 0.1f;
+    public float voronoiMaxHeight = 0.5f;
+    public int voronoiPeaks = 5;
+    public VoronoiType voronoiType = VoronoiType.Linear;
+    public enum VoronoiType
+    {
+
+        Linear,
+        Power,
+        SinPow,
+        Combined,
+        Perlin
+    }
+
+    // Midpoint Displacement *********************************
+    public float MPDHeightMin = -2.0f;
+    public float MPDHeightMax = 2.0f;
+    public float MPDHeightDampner = 2.0f;
+    public float MPDRoughness = 2.0f;
+
+    public int smoothAmount = 1;
+
+    public Terrain terrain;
+    public TerrainData terrainData;
+
     public void SplatMaps()
     {
 
+        int tah = terrainData.alphamapHeight;
+        int taw = terrainData.alphamapWidth;
+        int aml = terrainData.alphamapLayers;
         TerrainLayer[] newSplatPrototypes;
         newSplatPrototypes = new TerrainLayer[splatHeights.Count];
         int spIndex = 0;
 
         foreach (SplatHeights sh in splatHeights)
         {
-            Debug.Log("1");
+
             newSplatPrototypes[spIndex] = new TerrainLayer
             {
-                 
-            diffuseTexture = sh.texture,
+
+                diffuseTexture = sh.texture,
             };
-            
+
             newSplatPrototypes[spIndex].diffuseTexture.Apply(true);
             string path = "Assets/New Terrain Layer " + spIndex + ".terrainlayer";
             AssetDatabase.CreateAsset(newSplatPrototypes[spIndex], path);
             spIndex++;
             Selection.activeObject = this.gameObject;
         }
-        Debug.Log("2");
         terrainData.terrainLayers = newSplatPrototypes;
+
+        //USE HEIGHTMAP RESOLUTION HERE
+        float[,] heightMap = terrainData.GetHeights(0, 0, hmr, hmr);
+
+        //USE SPLATMAP RESOLUTUON HERE
+        float[,,] splatmapData = new float[taw, tah, aml];
+
+        for (int y = 0; y < tah; ++y)
+        {
+
+            for (int x = 0; x < taw; ++x)
+            {
+
+                float[] splat = new float[aml];
+
+                for (int i = 0; i < splatHeights.Count; ++i)
+                {
+
+                    float thisHeightStart = splatHeights[i].minHeight;
+                    float thisHeightStop = splatHeights[i].maxHeight;
+
+                    //SCALE FOR RESOLUTION DIFFERENCES
+                    //NOTE: The switching of the x and y is no longer needed here
+                    //Scale between the heightmap resolution and the splatmap resolution
+                    int hmX = x * ((hmr - 1) / taw);
+                    int hmY = y * ((hmr - 1) / tah);
+
+                    if (heightMap[hmX, hmY] >= thisHeightStart && heightMap[hmX, hmY] <= thisHeightStop)
+                    {
+
+                        splat[i] = 1;
+                    }
+                }
+
+                NormalizeVector(ref splat);
+                for (int j = 0; j < splatHeights.Count; j++)
+                {
+                    splatmapData[x, y, j] = splat[j];
+                }
+            }
+        }
+        terrainData.SetAlphamaps(0, 0, splatmapData);
+    }
+
+    public static void NormalizeVector(ref float[] v)
+    {
+
+        float total = 0.0f;
+        for (int i = 0; i < v.Length; ++i)
+        {
+
+            total += v[i];
+        }
+
+        for (int i = 0; i < v.Length; ++i)
+        {
+
+            v[i] /= total;
+        }
     }
 
     public void AddNewSplatHeight()
@@ -80,65 +199,6 @@ public class CustomTerrain : MonoBehaviour
         }
         splatHeights = keptSplatHeights;
     }
-
-
-    // Perlin Noise ***********************************************
-    public float perlinXScale = 0.01f;
-    public float perlinYScale = 0.01f;
-    public int perlinOffsetX = 0;
-    public int perlinOffsetY = 0;
-    public int perlinOctaves = 3;
-    public float perlinPersistance = 8.0f;
-    public float perlinHeightScale = 0.009f;
-
-    // Midpoint Displacement *********************************
-    public float MPDHeightMin = -2.0f;
-    public float MPDHeightMax = 2.0f;
-    public float MPDHeightDampner = 2.0f;
-    public float MPDRoughness = 2.0f;
-
-    public int smoothAmount = 1;
-
-
-    // Multiple Perlin Noise *************************************
-    [System.Serializable]
-    public class PerlinParameters
-    {
-
-        public float mPerlinXScale = 0.01f;
-        public float mPerlinYScale = 0.01f;
-        public int mPerlinOctaves = 3;
-        public float mPerlinPersistance = 8;
-        public float mPerlinHeightScale = 0.09f;
-        public int mPerlinOffsetX = 0;
-        public int mPerlinOffsetY = 0;
-        public bool remove = false;
-    }
-
-    // Voronoi ************************************************
-    public float voronoiFallOff = 0.2f;
-    public float voronoiDropOff = 0.6f;
-    public float voronoiMinHeight = 0.1f;
-    public float voronoiMaxHeight = 0.5f;
-    public int voronoiPeaks = 5;
-    public VoronoiType voronoiType = VoronoiType.Linear;
-    public enum VoronoiType
-    {
-
-        Linear,
-        Power,
-        SinPow,
-        Combined,
-        Perlin
-    }
-
-    public List<PerlinParameters> perlinParameters = new List<PerlinParameters>() {
-
-        new PerlinParameters()
-    };
-
-    public Terrain terrain;
-    public TerrainData terrainData;
 
     public void Perlin()
     {
@@ -314,7 +374,7 @@ public class CustomTerrain : MonoBehaviour
                         else
                         {
 
-                            h = peak.y - distanceToPeak * voronoiFallOff;   // Linear
+                            h = (peak.y - distanceToPeak * voronoiFallOff);   // Linear
                         }
 
                         if (heightMap[x, y] < h)
@@ -329,6 +389,7 @@ public class CustomTerrain : MonoBehaviour
 
         terrainData.SetHeights(0, 0, heightMap);
     }
+
     public void MidPointDisplacement()
     {
 
@@ -488,6 +549,7 @@ public class CustomTerrain : MonoBehaviour
         EditorUtility.ClearProgressBar();
     }
 
+
     public float[,] GetHeightMap()
     {
 
@@ -593,5 +655,4 @@ public class CustomTerrain : MonoBehaviour
         }
         return -1;
     }
-
 }
