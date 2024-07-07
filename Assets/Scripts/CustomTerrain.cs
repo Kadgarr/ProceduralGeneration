@@ -24,6 +24,12 @@ public class CustomTerrain : MonoBehaviour
         public Texture2D texture = null;
         public float minHeight = 0.1f;
         public float maxHeight = 0.2f;
+
+        public float splatOffset = 000000.10f;
+        public float splatNoiseXScale = 0.01f;
+        public float splatNoiseYScale = 0.01f;
+        public float splatNoiseZScale = 0.10f;
+
         public bool remove = false;
     }
     public List<SplatHeights> splatHeights = new List<SplatHeights>() {
@@ -132,10 +138,13 @@ public class CustomTerrain : MonoBehaviour
 
                 for (int i = 0; i < splatHeights.Count; ++i)
                 {
+                    float noise = Mathf.PerlinNoise(x * splatHeights[i].splatNoiseXScale,
+                                y * splatHeights[i].splatNoiseYScale) *
+                                splatHeights[i].splatNoiseZScale;
 
-                    float thisHeightStart = splatHeights[i].minHeight;
-                    float thisHeightStop = splatHeights[i].maxHeight;
-
+                    float offset = splatHeights[i].splatOffset + noise;
+                    float thisHeightStart = splatHeights[i].minHeight - offset;
+                    float thisHeightStop = splatHeights[i].maxHeight + offset;
                     //SCALE FOR RESOLUTION DIFFERENCES
                     //NOTE: The switching of the x and y is no longer needed here
                     //Scale between the heightmap resolution and the splatmap resolution
