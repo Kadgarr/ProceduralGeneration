@@ -153,8 +153,12 @@ public class CustomTerrain : MonoBehaviour
 
                     if (heightMap[hmX, hmY] >= thisHeightStart && heightMap[hmX, hmY] <= thisHeightStop)
                     {
-
-                        splat[i] = 1;
+                        if (heightMap[hmX, hmY] <= splatHeights[i].minHeight)
+                            splat[i] = 1.0f - Mathf.Abs(heightMap[hmX, hmY] - splatHeights[i].minHeight) / offset;
+                        else if (heightMap[hmX, hmY] >= splatHeights[i].maxHeight)
+                            splat[i] = 1.0f - Mathf.Abs(heightMap[hmX, hmY] - splatHeights[i].maxHeight) / offset;
+                        else
+                            splat[i] = 1;
                     }
                 }
 
