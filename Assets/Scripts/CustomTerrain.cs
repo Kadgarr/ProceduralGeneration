@@ -29,7 +29,8 @@ public class CustomTerrain : MonoBehaviour
         public float splatNoiseXScale = 0.01f;
         public float splatNoiseYScale = 0.01f;
         public float splatNoiseZScale = 0.10f;
-
+        public Vector2 tileOffset = Vector2.zero;
+        public Vector2 tileSize = new Vector2(50.0f, 50.0f);
         public bool remove = false;
     }
     public List<SplatHeights> splatHeights = new List<SplatHeights>() {
@@ -110,8 +111,9 @@ public class CustomTerrain : MonoBehaviour
 
             newSplatPrototypes[spIndex] = new TerrainLayer
             {
-
                 diffuseTexture = sh.texture,
+                tileOffset = sh.tileOffset,
+                tileSize = sh.tileSize
             };
 
             newSplatPrototypes[spIndex].diffuseTexture.Apply(true);
