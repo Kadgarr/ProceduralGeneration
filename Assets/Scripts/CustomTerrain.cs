@@ -22,6 +22,7 @@ public class CustomTerrain : MonoBehaviour
     {
 
         public Texture2D texture = null;
+        public Texture2D textureNormalMap = null;
         public float minHeight = 0.1f;
         public float maxHeight = 0.2f;
 
@@ -112,6 +113,7 @@ public class CustomTerrain : MonoBehaviour
             newSplatPrototypes[spIndex] = new TerrainLayer
             {
                 diffuseTexture = sh.texture,
+                normalMapTexture = sh.textureNormalMap,
                 tileOffset = sh.tileOffset,
                 tileSize = sh.tileSize
             };

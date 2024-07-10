@@ -80,12 +80,19 @@ public class CustomTerrainEditor : Editor
         perlinParameters = serializedObject.FindProperty("perlinParameters");
     }
 
+    Vector2 scrollPos;
     public override void OnInspectorGUI()
     {
 
         serializedObject.Update();
 
         CustomTerrain terrain = (CustomTerrain)target;
+
+        // Scrollbar Staring Code
+        Rect r = EditorGUILayout.BeginVertical();
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Width(r.width), GUILayout.Height(r.height));
+        EditorGUI.indentLevel++;
+
         EditorGUILayout.PropertyField(resetTerrain);
 
         showRandom = EditorGUILayout.Foldout(showRandom, "Random");
@@ -261,6 +268,10 @@ public class CustomTerrainEditor : Editor
 
             terrain.ResetTerrain();
         }
+
+        // Scrollbar Ending Code
+        EditorGUILayout.EndScrollView();
+        EditorGUILayout.EndVertical();
 
         serializedObject.ApplyModifiedProperties();
     }
