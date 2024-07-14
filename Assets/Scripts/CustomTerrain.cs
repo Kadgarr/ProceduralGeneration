@@ -27,6 +27,14 @@ public class CustomTerrain : MonoBehaviour
         public float maxHeight = 0.2f;
         public float minSlope = 0.0f;
         public float maxSlope = 90.0f;
+        public float minScale = 0.5f;
+        public float maxScale = 1.0f;
+        public Color colour1 = Color.white;
+        public Color colour2 = Color.white;
+        public Color lightColour = Color.white;
+        public float minRotation = 0.0f;
+        public float maxRotation = 360.0f;
+        public float density = 0.5f;
         public bool remove = false;
     }
     public List<Vegetation> vegetation = new List<Vegetation>() {
@@ -285,6 +293,46 @@ public class CustomTerrain : MonoBehaviour
             tIndex++;
         }
         terrainData.treePrototypes = newTreePrototypes;
+
+        List<TreeInstance> allVegetation = new List<TreeInstance>();
+        int tah = terrainData.alphamapHeight;
+        int taw = terrainData.alphamapWidth;
+
+        for (int z = 0; z < tah; z += treeSpacing)
+        {
+
+            for (int x = 0; x < taw; x += treeSpacing)
+            {
+
+                for (int tp = 0; tp < terrainData.treePrototypes.Length; ++tp)
+                {
+
+                    float thisHeight = terrainData.GetHeight(x, z) / terrainData.size.y;
+
+                    TreeInstance instance = new TreeInstance();
+                    instance.position = new Vector3((x + UnityEngine.Random.Range(-5.0f, 5.0f)) / taw,
+                                                        thisHeight,
+                                                        (z + UnityEngine.Random.Range(-5.0f, 5.0f)) / tah);
+
+                    instance.rotation = UnityEngine.Random.Range(vegetation[tp].minRotation,
+                                                                 vegetation[tp].maxRotation);
+                    instance.prototypeIndex = tp;
+                    instance.color = Color.Lerp(vegetation[tp].colour1,
+                                                vegetation[tp].colour2,
+                                                UnityEngine.Random.Range(0.0f, 1.0f));
+                    instance.lightmapColor = vegetation[tp].lightColour;
+                    float s = UnityEngine.Random.Range(vegetation[tp].minScale, vegetation[tp].maxScale);
+                    instance.heightScale = s;
+                    instance.widthScale = s;
+
+
+                    allVegetation.Add(instance);
+                    if (allVegetation.Count >= maxTrees) goto TREESDONE;
+                }
+            }
+        }
+    TREESDONE:
+        terrainData.treeInstances = allVegetation.ToArray();
     }
 
     public void AddNewVegetation()
