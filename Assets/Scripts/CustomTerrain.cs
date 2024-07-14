@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.VisualScripting.Dependencies.Sqlite;
 
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
@@ -25,7 +26,8 @@ public class CustomTerrain : MonoBehaviour
         public Texture2D textureNormalMap = null;
         public float minHeight = 0.1f;
         public float maxHeight = 0.2f;
-
+        public float minSlope = 0.0f;
+        public float maxSlope = 90.0f;
         public float splatOffset = 000000.10f;
         public float splatNoiseXScale = 0.01f;
         public float splatNoiseYScale = 0.01f;
@@ -155,8 +157,17 @@ public class CustomTerrain : MonoBehaviour
                     int hmX = x * ((hmr - 1) / taw);
                     int hmY = y * ((hmr - 1) / tah);
 
-                    if (heightMap[hmX, hmY] >= thisHeightStart && heightMap[hmX, hmY] <= thisHeightStop)
+
+                    float normX = x * 1.0f / (terrainData.alphamapWidth - 1);
+                    float normY = y * 1.0f / (terrainData.alphamapHeight - 1);
+
+                    // Get the steepness value at the normalised coordinate
+                    float steepness = terrainData.GetSteepness(normX, normY);
+
+                    if ((heightMap[hmX, hmY] >= thisHeightStart && heightMap[hmX, hmY] <= thisHeightStop) &&
+                          (steepness >= splatHeights[i].minSlope && steepness <= splatHeights[i].maxSlope))
                     {
+
                         if (heightMap[hmX, hmY] <= splatHeights[i].minHeight)
                             splat[i] = 1.0f - Mathf.Abs(heightMap[hmX, hmY] - splatHeights[i].minHeight) / offset;
                         else if (heightMap[hmX, hmY] >= splatHeights[i].maxHeight)
