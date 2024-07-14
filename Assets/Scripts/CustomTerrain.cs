@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
-using Unity.VisualScripting.Dependencies.Sqlite;
 
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
@@ -17,6 +16,29 @@ public class CustomTerrain : MonoBehaviour
     public Vector3 heightMapScale = new Vector3(1.0f, 1.0f, 1.0f);
     public bool resetTerrain = true;
 
+
+    // Vegetation *********************************************
+    [System.Serializable]
+    public class Vegetation
+    {
+
+        public GameObject mesh;
+        public float minHeight = 0.1f;
+        public float maxHeight = 0.2f;
+        public float minSlope = 0.0f;
+        public float maxSlope = 90.0f;
+        public bool remove = false;
+    }
+    public List<Vegetation> vegetation = new List<Vegetation>() {
+
+        new Vegetation()
+    };
+
+    public int maxTrees = 5000;
+    public int treeSpacing = 5;
+
+
+
     // Splatmaps **********************************************
     [System.Serializable]
     public class SplatHeights
@@ -26,12 +48,13 @@ public class CustomTerrain : MonoBehaviour
         public Texture2D textureNormalMap = null;
         public float minHeight = 0.1f;
         public float maxHeight = 0.2f;
-        public float minSlope = 0.0f;
-        public float maxSlope = 90.0f;
+
         public float splatOffset = 000000.10f;
         public float splatNoiseXScale = 0.01f;
         public float splatNoiseYScale = 0.01f;
         public float splatNoiseZScale = 0.10f;
+        public float minSlope = 0.0f;
+        public float maxSlope = 90.0f;
         public Vector2 tileOffset = Vector2.zero;
         public Vector2 tileSize = new Vector2(50.0f, 50.0f);
         public bool remove = false;
@@ -105,7 +128,9 @@ public class CustomTerrain : MonoBehaviour
         int tah = terrainData.alphamapHeight;
         int taw = terrainData.alphamapWidth;
         int aml = terrainData.alphamapLayers;
+
         TerrainLayer[] newSplatPrototypes;
+
         newSplatPrototypes = new TerrainLayer[splatHeights.Count];
         int spIndex = 0;
 
@@ -114,6 +139,7 @@ public class CustomTerrain : MonoBehaviour
 
             newSplatPrototypes[spIndex] = new TerrainLayer
             {
+
                 diffuseTexture = sh.texture,
                 normalMapTexture = sh.textureNormalMap,
                 tileOffset = sh.tileOffset,
@@ -141,22 +167,24 @@ public class CustomTerrain : MonoBehaviour
             {
 
                 float[] splat = new float[aml];
+                bool emptySplat = true;
 
                 for (int i = 0; i < splatHeights.Count; ++i)
                 {
+
                     float noise = Mathf.PerlinNoise(x * splatHeights[i].splatNoiseXScale,
-                                y * splatHeights[i].splatNoiseYScale) *
-                                splatHeights[i].splatNoiseZScale;
+                                                    y * splatHeights[i].splatNoiseYScale) *
+                                                    splatHeights[i].splatNoiseZScale;
 
                     float offset = splatHeights[i].splatOffset + noise;
                     float thisHeightStart = splatHeights[i].minHeight - offset;
                     float thisHeightStop = splatHeights[i].maxHeight + offset;
+
                     //SCALE FOR RESOLUTION DIFFERENCES
                     //NOTE: The switching of the x and y is no longer needed here
                     //Scale between the heightmap resolution and the splatmap resolution
                     int hmX = x * ((hmr - 1) / taw);
                     int hmY = y * ((hmr - 1) / tah);
-
 
                     float normX = x * 1.0f / (terrainData.alphamapWidth - 1);
                     float normY = y * 1.0f / (terrainData.alphamapHeight - 1);
@@ -174,13 +202,25 @@ public class CustomTerrain : MonoBehaviour
                             splat[i] = 1.0f - Mathf.Abs(heightMap[hmX, hmY] - splatHeights[i].maxHeight) / offset;
                         else
                             splat[i] = 1;
+                        emptySplat = false;
                     }
+
                 }
 
                 NormalizeVector(ref splat);
-                for (int j = 0; j < splatHeights.Count; j++)
+
+                if (emptySplat)
                 {
-                    splatmapData[x, y, j] = splat[j];
+
+                    splatmapData[x, y, 0] = 1;
+                }
+                else
+                {
+
+                    for (int j = 0; j < splatHeights.Count; j++)
+                    {
+                        splatmapData[x, y, j] = splat[j];
+                    }
                 }
             }
         }
@@ -196,6 +236,7 @@ public class CustomTerrain : MonoBehaviour
 
             total += v[i];
         }
+        if (total == 0) return;
 
         for (int i = 0; i < v.Length; ++i)
         {
@@ -226,6 +267,48 @@ public class CustomTerrain : MonoBehaviour
             keptSplatHeights.Add(splatHeights[0]); //add at least 1
         }
         splatHeights = keptSplatHeights;
+    }
+
+    public void PlantVegetation()
+    {
+
+        TreePrototype[] newTreePrototypes;
+        newTreePrototypes = new TreePrototype[vegetation.Count];
+        int tIndex = 0;
+        foreach (Vegetation t in vegetation)
+        {
+
+            newTreePrototypes[tIndex] = new TreePrototype
+            {
+                prefab = t.mesh
+            };
+            tIndex++;
+        }
+        terrainData.treePrototypes = newTreePrototypes;
+    }
+
+    public void AddNewVegetation()
+    {
+
+        vegetation.Add(new Vegetation());
+    }
+
+    public void RemoveVegetation()
+    {
+
+        List<Vegetation> keptvegetation = new List<Vegetation>();
+        for (int i = 0; i < vegetation.Count; i++)
+        {
+            if (!vegetation[i].remove)
+            {
+                keptvegetation.Add(vegetation[i]);
+            }
+        }
+        if (keptvegetation.Count == 0) //don't want to keep any
+        {
+            keptvegetation.Add(vegetation[0]); //add at least 1
+        }
+        vegetation = keptvegetation;
     }
 
     public void Perlin()
