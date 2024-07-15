@@ -307,6 +307,7 @@ public class CustomTerrain : MonoBehaviour
                 for (int tp = 0; tp < terrainData.treePrototypes.Length; ++tp)
                 {
 
+                    if (UnityEngine.Random.Range(0.0f, 1.0f) > vegetation[tp].density) break;
                     float thisHeight = terrainData.GetHeight(x, z) / terrainData.size.y;
 
                     TreeInstance instance = new TreeInstance();
@@ -314,8 +315,24 @@ public class CustomTerrain : MonoBehaviour
                                                         thisHeight,
                                                         (z + UnityEngine.Random.Range(-5.0f, 5.0f)) / tah);
 
+                    Vector3 treeWorldPos = new Vector3(instance.position.x * terrainData.size.x,
+                                                            instance.position.y * terrainData.size.y,
+                                                            instance.position.z * terrainData.size.z) + this.transform.position;
+
+                    RaycastHit hit;
+                    int layerMask = 1 << terrainLayer;
+                    if (Physics.Raycast(treeWorldPos + new Vector3(0.0f, 10.0f, 0.0f), -Vector3.up, out hit, 100, layerMask) ||
+                        Physics.Raycast(treeWorldPos - new Vector3(0.0f, 10.0f, 0.0f), Vector3.up, out hit, 100, layerMask))
+                    {
+
+                        float treeHeight = (hit.point.y - this.transform.position.y) / terrainData.size.y;
+                        instance.position = new Vector3(instance.position.x,
+                                                        treeHeight,
+                                                        instance.position.z);
+                    }
+
                     instance.rotation = UnityEngine.Random.Range(vegetation[tp].minRotation,
-                                                                 vegetation[tp].maxRotation);
+                                                             vegetation[tp].maxRotation);
                     instance.prototypeIndex = tp;
                     instance.color = Color.Lerp(vegetation[tp].colour1,
                                                 vegetation[tp].colour2,
