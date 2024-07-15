@@ -308,43 +308,55 @@ public class CustomTerrain : MonoBehaviour
                 {
 
                     if (UnityEngine.Random.Range(0.0f, 1.0f) > vegetation[tp].density) break;
+
                     float thisHeight = terrainData.GetHeight(x, z) / terrainData.size.y;
+                    float thisHeightStart = vegetation[tp].minHeight;
+                    float thisHeightEnd = vegetation[tp].maxHeight;
 
-                    TreeInstance instance = new TreeInstance();
-                    instance.position = new Vector3((x + UnityEngine.Random.Range(-5.0f, 5.0f)) / taw,
-                                                        thisHeight,
-                                                        (z + UnityEngine.Random.Range(-5.0f, 5.0f)) / tah);
+                    float normX = x * 1.0f / (taw - 1.0f);
+                    float normY = z * 1.0f / (tah - 1.0f);
+                    float steepness = terrainData.GetSteepness(x, z);
 
-                    Vector3 treeWorldPos = new Vector3(instance.position.x * terrainData.size.x,
-                                                            instance.position.y * terrainData.size.y,
-                                                            instance.position.z * terrainData.size.z) + this.transform.position;
-
-                    RaycastHit hit;
-                    int layerMask = 1 << terrainLayer;
-                    if (Physics.Raycast(treeWorldPos + new Vector3(0.0f, 10.0f, 0.0f), -Vector3.up, out hit, 100, layerMask) ||
-                        Physics.Raycast(treeWorldPos - new Vector3(0.0f, 10.0f, 0.0f), Vector3.up, out hit, 100, layerMask))
+                    if ((thisHeight >= thisHeightStart && thisHeight <= thisHeightEnd) &&
+                   (steepness >= vegetation[tp].minSlope && steepness <= vegetation[tp].maxSlope))
                     {
 
-                        float treeHeight = (hit.point.y - this.transform.position.y) / terrainData.size.y;
-                        instance.position = new Vector3(instance.position.x,
-                                                        treeHeight,
-                                                        instance.position.z);
+                        TreeInstance instance = new TreeInstance();
+                        instance.position = new Vector3((x + UnityEngine.Random.Range(-5.0f, 5.0f)) / taw,
+                                                            thisHeight,
+                                                            (z + UnityEngine.Random.Range(-5.0f, 5.0f)) / tah);
+
+                        Vector3 treeWorldPos = new Vector3(instance.position.x * terrainData.size.x,
+                                                                instance.position.y * terrainData.size.y,
+                                                                instance.position.z * terrainData.size.z) + this.transform.position;
+
+                        RaycastHit hit;
+                        int layerMask = 1 << terrainLayer;
+                        if (Physics.Raycast(treeWorldPos + new Vector3(0.0f, 10.0f, 0.0f), -Vector3.up, out hit, 100, layerMask) ||
+                            Physics.Raycast(treeWorldPos - new Vector3(0.0f, 10.0f, 0.0f), Vector3.up, out hit, 100, layerMask))
+                        {
+
+                            float treeHeight = (hit.point.y - this.transform.position.y) / terrainData.size.y;
+                            instance.position = new Vector3(instance.position.x,
+                                                            treeHeight,
+                                                            instance.position.z);
+                        }
+
+                        instance.rotation = UnityEngine.Random.Range(vegetation[tp].minRotation,
+                                                                 vegetation[tp].maxRotation);
+                        instance.prototypeIndex = tp;
+                        instance.color = Color.Lerp(vegetation[tp].colour1,
+                                                    vegetation[tp].colour2,
+                                                    UnityEngine.Random.Range(0.0f, 1.0f));
+                        instance.lightmapColor = vegetation[tp].lightColour;
+                        float s = UnityEngine.Random.Range(vegetation[tp].minScale, vegetation[tp].maxScale);
+                        instance.heightScale = s;
+                        instance.widthScale = s;
+
+
+                        allVegetation.Add(instance);
+                        if (allVegetation.Count >= maxTrees) goto TREESDONE;
                     }
-
-                    instance.rotation = UnityEngine.Random.Range(vegetation[tp].minRotation,
-                                                             vegetation[tp].maxRotation);
-                    instance.prototypeIndex = tp;
-                    instance.color = Color.Lerp(vegetation[tp].colour1,
-                                                vegetation[tp].colour2,
-                                                UnityEngine.Random.Range(0.0f, 1.0f));
-                    instance.lightmapColor = vegetation[tp].lightColour;
-                    float s = UnityEngine.Random.Range(vegetation[tp].minScale, vegetation[tp].maxScale);
-                    instance.heightScale = s;
-                    instance.widthScale = s;
-
-
-                    allVegetation.Add(instance);
-                    if (allVegetation.Count >= maxTrees) goto TREESDONE;
                 }
             }
         }
