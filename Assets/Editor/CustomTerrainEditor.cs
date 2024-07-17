@@ -43,6 +43,11 @@ public class CustomTerrainEditor : Editor
     SerializedProperty maxTrees;
     SerializedProperty treeSpacing;
 
+    GUITableState detailMapTable;
+    SerializedProperty details;
+    SerializedProperty maxDetails;
+    SerializedProperty detailSpacing;
+
     // Fold Outs
     bool showRandom = false;
     bool showLoadHeights = false;
@@ -53,7 +58,7 @@ public class CustomTerrainEditor : Editor
     bool showSmooth = false;
     bool showSplatMaps = false;
     bool showVeg = false;
-
+    bool showDetails = false;
     private void OnEnable()
     {
 
@@ -88,6 +93,11 @@ public class CustomTerrainEditor : Editor
 
         perlinParameterTable = new GUITableState("perlinParameterTable");
         perlinParameters = serializedObject.FindProperty("perlinParameters");
+
+        detailMapTable = new GUITableState("detailMapTable");
+        details = serializedObject.FindProperty("details");
+        maxDetails = serializedObject.FindProperty("maxDetails");
+        detailSpacing = serializedObject.FindProperty("detailSpacing");
     }
 
     Vector2 scrollPos;
@@ -299,6 +309,38 @@ public class CustomTerrainEditor : Editor
             {
 
                 terrain.PlantVegetation();
+            }
+        }
+
+        showDetails = EditorGUILayout.Foldout(showDetails, "Details");
+        if (showDetails)
+        {
+
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Details", EditorStyles.boldLabel);
+            EditorGUILayout.IntSlider(maxDetails, 0, 10000, new GUIContent("Maximum Details"));
+            EditorGUILayout.IntSlider(detailSpacing, 1, 20, new GUIContent("Detail Spacing"));
+            detailMapTable = GUITableLayout.DrawTable(detailMapTable, serializedObject.FindProperty("details"));
+
+            terrain.GetComponent<Terrain>().detailObjectDistance = maxDetails.intValue;
+
+            GUILayout.Space(20);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+"))
+            {
+
+                terrain.AddNewDetails();
+            }
+            if (GUILayout.Button("-"))
+            {
+
+                terrain.RemoveDetails();
+            }
+            EditorGUILayout.EndHorizontal();
+            if (GUILayout.Button("Apply Details"))
+            {
+
+                terrain.AddDetails();
             }
         }
 

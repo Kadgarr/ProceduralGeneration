@@ -130,6 +130,112 @@ public class CustomTerrain : MonoBehaviour
     public Terrain terrain;
     public TerrainData terrainData;
 
+    // Details ************************************************
+    [System.Serializable]
+    public class Detail
+    {
+
+        public GameObject prototype = null;
+        public Texture2D prototypeTexture = null;
+        public float minHeight = 0.1f;
+        public float maxHeight = 0.2f;
+        public float minSlope = 0.0f;
+        public float maxSlope = 1.0f;
+        public float overlap = 0.01f;
+        public float feather = 0.05f;
+        public float density = 0.5f;
+        public bool remove = false;
+    }
+
+    public List<Detail> details = new List<Detail>() {
+
+        new Detail()
+    };
+
+    public int maxDetails = 5000;
+    public int detailSpacing = 5;
+
+    public void AddDetails()
+    {
+
+        DetailPrototype[] newDetailPrototypes;
+        newDetailPrototypes = new DetailPrototype[details.Count];
+        int dIndex = 0;
+
+        foreach (Detail d in details)
+        {
+
+            newDetailPrototypes[dIndex] = new DetailPrototype
+            {
+
+                prototype = d.prototype,
+                prototypeTexture = d.prototypeTexture,
+                healthyColor = Color.white,
+            };
+
+            if (newDetailPrototypes[dIndex].prototype)
+            {
+
+                newDetailPrototypes[dIndex].usePrototypeMesh = true;
+                newDetailPrototypes[dIndex].renderMode = DetailRenderMode.VertexLit;
+            }
+            else
+            {
+
+                newDetailPrototypes[dIndex].usePrototypeMesh = false;
+                newDetailPrototypes[dIndex].renderMode = DetailRenderMode.GrassBillboard;
+            }
+            dIndex++;
+        }
+        terrainData.detailPrototypes = newDetailPrototypes;
+
+        for (int i = 0; i < terrainData.detailPrototypes.Length; ++i)
+        {
+
+            int[,] detailMap = new int[terrainData.detailWidth, terrainData.detailHeight];
+
+            for (int y = 0; y < terrainData.detailHeight; y += detailSpacing)
+            {
+
+                for (int x = 0; x < terrainData.detailWidth; x += detailSpacing)
+                {
+
+                    if (UnityEngine.Random.Range(0.0f, 1.0f) > details[i].density) continue;
+                    detailMap[y, x] = 1;
+                }
+            }
+            terrainData.SetDetailLayer(0, 0, i, detailMap);
+        }
+    }
+
+    public void AddNewDetails()
+    {
+
+        details.Add(new Detail());
+    }
+
+    public void RemoveDetails()
+    {
+
+        //for (int i = details.Count - 1; i >= 1; i--)
+        //    if (details[i].remove) details.RemoveAt(i);
+        List<Detail> keptDetail = new List<Detail>();
+        for (int i = 0; i < vegetation.Count; ++i)
+        {
+
+            if (!vegetation[i].remove)
+            {
+
+                keptDetail.Add(details[i]);
+            }
+        }
+        if (keptDetail.Count == 0) //don't want to keep any
+        {
+            keptDetail.Add(details[0]); //add at least 1
+        }
+        details = keptDetail;
+    }
+
     public void SplatMaps()
     {
 
