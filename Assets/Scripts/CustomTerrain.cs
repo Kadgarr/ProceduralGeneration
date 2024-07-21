@@ -190,6 +190,12 @@ public class CustomTerrain : MonoBehaviour
         }
         terrainData.detailPrototypes = newDetailPrototypes;
 
+        float minDetailValue = 0;
+        float maxDetailValue = 16;
+
+        if (terrainData.detailScatterMode == DetailScatterMode.CoverageMode)
+            maxDetailValue = 255;
+
         for (int i = 0; i < terrainData.detailPrototypes.Length; ++i)
         {
 
@@ -218,7 +224,7 @@ public class CustomTerrain : MonoBehaviour
                     if ((thisHeight >= thisHeightStart && thisHeight <= nextHeightStart) &&
                         (steepness >= details[i].minSlope && steepness <= details[i].maxSlope))
                     {
-                        detailMap[y, x] = 1;
+                        detailMap[y, x] = (int)UnityEngine.Random.Range(minDetailValue,maxDetailValue);
                     }
                 }
             }
