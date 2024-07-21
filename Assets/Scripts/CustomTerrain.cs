@@ -141,6 +141,11 @@ public class CustomTerrain : MonoBehaviour
         public float maxHeight = 0.2f;
         public float minSlope = 0.0f;
         public float maxSlope = 1.0f;
+        public Color dryColor = Color.white;
+        public Color healthyColor = Color.white;
+        public Vector2 heightRange = new Vector2(1.0f, 1.0f);
+        public Vector2 widthRange = new Vector2(1.0f, 1.0f);
+        public float noiseSpread = 0.5f;
         public float overlap = 0.01f;
         public float feather = 0.05f;
         public float density = 0.5f;
@@ -172,6 +177,12 @@ public class CustomTerrain : MonoBehaviour
                 prototype = d.prototype,
                 prototypeTexture = d.prototypeTexture,
                 healthyColor = Color.white,
+                dryColor = d.dryColor,
+                minHeight = d.heightRange.x,
+                maxHeight = d.heightRange.y,
+                minWidth = d.widthRange.x,
+                maxWidth = d.widthRange.y,
+                noiseSpread = d.noiseSpread
             };
 
             if (newDetailPrototypes[dIndex].prototype)
