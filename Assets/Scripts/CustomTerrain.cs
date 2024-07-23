@@ -16,6 +16,29 @@ public class CustomTerrain : MonoBehaviour
     public Vector3 heightMapScale = new Vector3(1.0f, 1.0f, 1.0f);
     public bool resetTerrain = true;
 
+    // Water Level
+    public float waterHeight = 0.5f;
+    public GameObject waterGO;
+
+
+    public void AddWater()
+    {
+
+        GameObject water = GameObject.Find("water");
+        if (!water)
+        {
+
+            water = Instantiate(waterGO, this.transform.position, this.transform.rotation);
+            water.name = "water";
+        }
+        water.transform.position = this.transform.position +
+            new Vector3(terrainData.size.x / 2.0f,
+            waterHeight * terrainData.size.y,
+            terrainData.size.z / 2.0f);
+
+        water.transform.localScale = new Vector3(terrainData.size.x, 1.0f, terrainData.size.z);
+    }
+
 
     // Vegetation *********************************************
     [System.Serializable]

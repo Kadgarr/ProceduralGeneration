@@ -48,6 +48,10 @@ public class CustomTerrainEditor : Editor
     SerializedProperty maxDetails;
     SerializedProperty detailSpacing;
 
+    SerializedProperty waterHeight;
+    SerializedProperty waterGO;
+
+
     // Fold Outs
     bool showRandom = false;
     bool showLoadHeights = false;
@@ -59,6 +63,8 @@ public class CustomTerrainEditor : Editor
     bool showSplatMaps = false;
     bool showVeg = false;
     bool showDetails = false;
+    bool showWater = false;
+
     private void OnEnable()
     {
 
@@ -98,6 +104,10 @@ public class CustomTerrainEditor : Editor
         details = serializedObject.FindProperty("details");
         maxDetails = serializedObject.FindProperty("maxDetails");
         detailSpacing = serializedObject.FindProperty("detailSpacing");
+
+
+        waterHeight = serializedObject.FindProperty("waterHeight");
+        waterGO = serializedObject.FindProperty("waterGO");
     }
 
     Vector2 scrollPos;
@@ -341,6 +351,22 @@ public class CustomTerrainEditor : Editor
             {
 
                 terrain.AddDetails();
+            }
+        }
+
+        showWater = EditorGUILayout.Foldout(showWater, "Water");
+        if (showWater)
+        {
+
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Water", EditorStyles.boldLabel);
+            EditorGUILayout.Slider(waterHeight, 0.0f, 1.0f, new GUIContent("Water Height"));
+            EditorGUILayout.PropertyField(waterGO);
+
+            if (GUILayout.Button("Add Water"))
+            {
+
+                terrain.AddWater();
             }
         }
 
