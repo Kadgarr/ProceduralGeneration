@@ -16,6 +16,85 @@ public class CustomTerrain : MonoBehaviour
     public Vector3 heightMapScale = new Vector3(1.0f, 1.0f, 1.0f);
     public bool resetTerrain = true;
 
+    // Erosion ***********************************************************************
+    public enum ErosionType
+    {
+
+        Rain,
+        Thermal,
+        Tidal,
+        River,
+        Wind,
+        Canyon,
+        Beach
+    }
+
+    public ErosionType erosionType = ErosionType.Rain;
+    public float erosionStrength = 0.1f;
+    public float erosionAmount = 0.001f;
+    public float solubilty = 0.01f;
+    public int springsPerRiver = 5;
+    public int droplets = 10;
+    public int erosionSmoothAmount = 5;
+
+    public void Erode()
+    {
+
+        switch (erosionType)
+        {
+            case ErosionType.Rain:
+                Rain();
+                break;
+            case ErosionType.Thermal:
+                Thermal();
+                break;
+            case ErosionType.Tidal:
+                Tidal();
+                break;
+            case ErosionType.River:
+                River();
+                break;
+            case ErosionType.Wind:
+                Wind();
+                break;
+        }
+
+        smoothAmount = erosionSmoothAmount;
+        Smooth();
+    }
+
+    private void Rain()
+    {
+
+        float[,] heightMap = terrainData.GetHeights(0, 0, HMR, HMR);
+
+        for (int i = 0; i < droplets; ++i)
+        {
+            heightMap[UnityEngine.Random.Range(0, HMR), UnityEngine.Random.Range(0, HMR)] -= erosionStrength;
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    private void Thermal()
+    {
+
+    }
+
+    private void Tidal()
+    {
+
+    }
+
+    private void River()
+    {
+
+    }
+
+    private void Wind()
+    {
+
+    }
+
     // Water Level
     public float waterHeight = 0.5f;
     public GameObject waterGO;

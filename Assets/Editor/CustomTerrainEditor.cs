@@ -51,6 +51,13 @@ public class CustomTerrainEditor : Editor
     SerializedProperty waterHeight;
     SerializedProperty waterGO;
 
+    SerializedProperty erosionType;
+    SerializedProperty erosionStrength;
+    SerializedProperty springsPerRiver;
+    SerializedProperty solubilty;
+    SerializedProperty droplets;
+    SerializedProperty erosionSmoothAmount;
+
 
     // Fold Outs
     bool showRandom = false;
@@ -64,6 +71,7 @@ public class CustomTerrainEditor : Editor
     bool showVeg = false;
     bool showDetails = false;
     bool showWater = false;
+    bool showErosion = false;
 
     private void OnEnable()
     {
@@ -108,6 +116,13 @@ public class CustomTerrainEditor : Editor
 
         waterHeight = serializedObject.FindProperty("waterHeight");
         waterGO = serializedObject.FindProperty("waterGO");
+
+        erosionType = serializedObject.FindProperty("erosionType");
+        erosionStrength = serializedObject.FindProperty("erosionStrength");
+        springsPerRiver = serializedObject.FindProperty("springsPerRiver");
+        solubilty = serializedObject.FindProperty("solubilty");
+        droplets = serializedObject.FindProperty("droplets");
+        erosionSmoothAmount = serializedObject.FindProperty("erosionSmoothAmount");
     }
 
     Vector2 scrollPos;
@@ -367,6 +382,24 @@ public class CustomTerrainEditor : Editor
             {
 
                 terrain.AddWater();
+            }
+        }
+
+        showErosion = EditorGUILayout.Foldout(showErosion, "Erosion");
+        if (showErosion)
+        {
+
+            EditorGUILayout.PropertyField(erosionType);
+            EditorGUILayout.Slider(erosionStrength, 0.0f, 1.0f, new GUIContent("Erosion Strength"));
+            EditorGUILayout.IntSlider(droplets, 0, 500, new GUIContent("Droplets"));
+            EditorGUILayout.Slider(solubilty, 0.001f, 1.0f, new GUIContent("Solubility"));
+            EditorGUILayout.IntSlider(springsPerRiver, 0, 20, new GUIContent("Springs Per River"));
+            EditorGUILayout.IntSlider(erosionSmoothAmount, 0, 10, new GUIContent("Smooth Amount"));
+
+            if (GUILayout.Button("Erode"))
+            {
+
+                terrain.Erode();
             }
         }
 
