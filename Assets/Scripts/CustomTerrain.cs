@@ -31,7 +31,7 @@ public class CustomTerrain : MonoBehaviour
 
     public ErosionType erosionType = ErosionType.Rain;
     public float erosionStrength = 0.1f;
-    public float erosionAmount = 0.001f;
+    public float erosionAmount = 0.5f;
     public float solubilty = 0.01f;
     public int springsPerRiver = 5;
     public int droplets = 10;
@@ -77,12 +77,61 @@ public class CustomTerrain : MonoBehaviour
 
     private void Thermal()
     {
+        float[,] heightMap = terrainData.GetHeights(0, 0, HMR, HMR);
 
+        for (int y = 0; y < HMR; ++y)
+        {
+
+            for (int x = 0; x < HMR; ++x)
+            {
+
+                Vector2 thisLocation = new Vector2(x, y);
+                List<Vector2> neighbours = GenerateNeighbours(thisLocation, HMR, HMR);
+
+                foreach (Vector2 n in neighbours)
+                {
+
+                    if (heightMap[x, y] > heightMap[(int)n.x, (int)n.y] + erosionStrength)
+                    {
+
+                        float currentHeight = heightMap[x, y];
+                        heightMap[x, y] -= currentHeight * erosionAmount;
+                        heightMap[(int)n.x, (int)n.y] += currentHeight * erosionAmount;
+
+                    }
+                }
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
     }
 
     private void Tidal()
     {
+        float[,] heightMap = terrainData.GetHeights(0, 0, HMR, HMR);
 
+        for (int y = 0; y < HMR; ++y)
+        {
+
+            for (int x = 0; x < HMR; ++x)
+            {
+
+                Vector2 thisLocation = new Vector2(x, y);
+                List<Vector2> neighbours = GenerateNeighbours(thisLocation, HMR, HMR);
+
+                foreach (Vector2 n in neighbours)
+                {
+
+                    if (heightMap[x, y] < waterHeight && heightMap[(int)n.x, (int)n.y] > waterHeight)
+                    {
+
+                        heightMap[x, y] = waterHeight;
+                        heightMap[(int)n.x, (int)n.y] = waterHeight;
+
+                    }
+                }
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
     }
 
     private void River()
