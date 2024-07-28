@@ -136,7 +136,70 @@ public class CustomTerrain : MonoBehaviour
 
     private void River()
     {
+        float[,] heightMap = terrainData.GetHeights(0, 0, HMR, HMR);
+        float[,] erosionMap = new float[HMR, HMR];
 
+        for (int i = 0; i < droplets; ++i)
+        {
+
+            Vector2 dropletPosition = new Vector2(UnityEngine.Random.Range(0, HMR), UnityEngine.Random.Range(0, HMR));
+            erosionMap[(int)dropletPosition.x, (int)dropletPosition.y] = erosionStrength;
+
+            for (int j = 0; j < springsPerRiver; ++j)
+            {
+
+                erosionMap = RunRiver(dropletPosition, heightMap, erosionMap, HMR);
+            }
+        }
+        for (int y = 0; y < HMR; ++y)
+        {
+
+            for (int x = 0; x < HMR; ++x)
+            {
+
+                if (erosionMap[x, y] > 0.0f)
+                {
+
+                    heightMap[x, y] -= erosionMap[x, y];
+                }
+            }
+        }
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    private static System.Random rng = new System.Random();
+    private float[,] RunRiver(Vector2 dropletPosition, float[,] heightMap, float[,] erosionMap, int hmr)
+    {
+
+        while (erosionMap[(int)dropletPosition.x, (int)dropletPosition.y] > 0)
+        {
+
+            List<Vector2> origNeighbours = GenerateNeighbours(dropletPosition, hmr, hmr);
+            var neighbours = origNeighbours.OrderBy(a => rng.Next()).ToList();
+            // neighbours = rndNeighbours;
+            // neighbours.Shuffle();
+            bool foundLower = false;
+
+            foreach (Vector2 n in neighbours)
+            {
+
+                if (heightMap[(int)n.x, (int)n.y] < heightMap[(int)dropletPosition.x, (int)dropletPosition.y])
+                {
+
+                    erosionMap[(int)n.x, (int)n.y] = erosionMap[(int)dropletPosition.x, (int)dropletPosition.y] - solubilty;
+                    dropletPosition = n;
+                    foundLower = true;
+                    break;
+                }
+            }
+            if (!foundLower)
+            {
+
+                erosionMap[(int)dropletPosition.x, (int)dropletPosition.y] -= solubilty;
+            }
+        }
+        return erosionMap;
     }
 
     private void Wind()
