@@ -60,6 +60,20 @@ public class CustomTerrainEditor : Editor
     SerializedProperty erosionSmoothAmount;
 
 
+    SerializedProperty numClouds;
+    SerializedProperty particlesPerCloud;
+    SerializedProperty cloudScaleMin;
+    SerializedProperty cloudScaleMax;
+    SerializedProperty cloudMaterial;
+    SerializedProperty cloudShadowMaterial;
+    SerializedProperty cloudStartSize;
+    SerializedProperty cloudColour;
+    SerializedProperty cloudLining;
+    SerializedProperty cloudMinSpeed;
+    SerializedProperty cloudMaxSpeed;
+    SerializedProperty cloudRange;
+
+
     // Fold Outs
     bool showRandom = false;
     bool showLoadHeights = false;
@@ -73,6 +87,7 @@ public class CustomTerrainEditor : Editor
     bool showDetails = false;
     bool showWater = false;
     bool showErosion = false;
+    bool showClouds = false;
 
     private void OnEnable()
     {
@@ -125,6 +140,19 @@ public class CustomTerrainEditor : Editor
         solubilty = serializedObject.FindProperty("solubilty");
         droplets = serializedObject.FindProperty("droplets");
         erosionSmoothAmount = serializedObject.FindProperty("erosionSmoothAmount");
+
+        numClouds = serializedObject.FindProperty("numClouds");
+        particlesPerCloud = serializedObject.FindProperty("particlesPerCloud");
+        cloudScaleMin = serializedObject.FindProperty("cloudScaleMin");
+        cloudScaleMax = serializedObject.FindProperty("cloudScaleMax");
+        cloudMaterial = serializedObject.FindProperty("cloudMaterial");
+        cloudStartSize = serializedObject.FindProperty("cloudStartSize");
+        cloudColour = serializedObject.FindProperty("cloudColour");
+        cloudLining = serializedObject.FindProperty("cloudLining");
+        cloudMinSpeed = serializedObject.FindProperty("cloudMinSpeed");
+        cloudMaxSpeed = serializedObject.FindProperty("cloudMaxSpeed");
+        cloudRange = serializedObject.FindProperty("cloudRange");
+        cloudShadowMaterial = serializedObject.FindProperty("cloudShadowMaterial");
     }
 
     Vector2 scrollPos;
@@ -402,6 +430,28 @@ public class CustomTerrainEditor : Editor
             if (GUILayout.Button("Erode"))
             {
                 terrain.Erode();
+            }
+        }
+
+        showClouds = EditorGUILayout.Foldout(showClouds, "Clouds");
+        if (showClouds)
+        {
+            EditorGUILayout.PropertyField(numClouds, new GUIContent("Number of Clouds"));
+            EditorGUILayout.PropertyField(particlesPerCloud, new GUIContent("Particles Per Clouds"));
+            EditorGUILayout.PropertyField(cloudStartSize, new GUIContent("Cloud Particle Size"));
+            EditorGUILayout.PropertyField(cloudScaleMin, new GUIContent("Min Size"));
+            EditorGUILayout.PropertyField(cloudScaleMax, new GUIContent("Max Size"));
+            EditorGUILayout.PropertyField(cloudMaterial, true);
+            EditorGUILayout.PropertyField(cloudShadowMaterial, true);
+            EditorGUILayout.PropertyField(cloudColour, new GUIContent("Colour"));
+            EditorGUILayout.PropertyField(cloudLining, new GUIContent("Lining"));
+            EditorGUILayout.PropertyField(cloudMinSpeed, new GUIContent("Min Speed"));
+            EditorGUILayout.PropertyField(cloudMaxSpeed, new GUIContent("Max Speed"));
+            EditorGUILayout.PropertyField(cloudRange, new GUIContent("Distance Travelled"));
+
+            if (GUILayout.Button("Generate Clouds"))
+            {
+                terrain.GenerateClouds();
             }
         }
 

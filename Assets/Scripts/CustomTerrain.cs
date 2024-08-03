@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.Rendering.Universal;
 
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
@@ -15,6 +16,104 @@ public class CustomTerrain : MonoBehaviour
     public Texture2D heightMapImage;
     public Vector3 heightMapScale = new Vector3(1.0f, 1.0f, 1.0f);
     public bool resetTerrain = true;
+
+    //CLOUDS -----------------------------------------------
+    public int numClouds = 1;
+    public int particlesPerCloud = 50;
+    public Vector3 cloudScaleMin = new Vector3(1, 1, 1);
+    public Vector3 cloudScaleMax = new Vector3(1, 1, 1);
+    public Material cloudMaterial;
+    public Material cloudShadowMaterial;
+    public float cloudStartSize = 5;
+    public Color cloudColour = Color.white;
+    public Color cloudLining = Color.grey;
+    public float cloudMinSpeed = 0.2f;
+    public float cloudMaxSpeed = 0.5f;
+    public float cloudRange = 500.0f;
+
+    public void GenerateClouds()
+    {
+
+        GameObject cloudManager = GameObject.Find("CloudManager");
+        if (!cloudManager)
+        {
+
+            cloudManager = new GameObject();
+            cloudManager.name = "CloudManager";
+            cloudManager.AddComponent<CloudManager>();
+            cloudManager.transform.position = this.transform.position;
+        }
+
+        GameObject[] allClouds = GameObject.FindGameObjectsWithTag("Cloud");
+
+        for (int i = 0; i < allClouds.Length; ++i)
+            DestroyImmediate(allClouds[i]);
+
+
+        for (int c = 0; c < numClouds; ++c)
+        {
+
+            GameObject cloudGO = new GameObject();
+            cloudGO.name = "Cloud" + c;
+            cloudGO.tag = "Cloud";
+
+            cloudGO.transform.rotation = cloudManager.transform.rotation;
+            cloudGO.transform.position = cloudManager.transform.position;
+
+            CloudController cc = cloudGO.AddComponent<CloudController>();
+            cc.lining = cloudLining;
+            cc.colour = cloudColour;
+            cc.numberOfParticles = particlesPerCloud;
+            cc.minSpeed = cloudMinSpeed;
+            cc.maxSpeed = cloudMaxSpeed;
+            cc.distance = cloudRange;
+
+            ParticleSystem cloudSystem = cloudGO.AddComponent<ParticleSystem>();
+            Renderer cloudRend = cloudGO.GetComponent<Renderer>();
+            cloudRend.material = cloudMaterial;
+
+            cloudGO.layer = LayerMask.NameToLayer("Sky");
+            GameObject cloudProjector = new GameObject();
+            cloudProjector.name = "Shadow";
+            cloudProjector.transform.position = cloudGO.transform.position;
+            cloudProjector.transform.forward = Vector3.down;
+            cloudProjector.transform.parent = cloudGO.transform;
+
+            if (UnityEngine.Random.Range(0, 10) < 5)
+            {
+
+                DecalProjector cp = cloudProjector.AddComponent<DecalProjector>();
+                cp.material = cloudShadowMaterial;
+                cp.renderingLayerMask = (uint)LayerMask.NameToLayer("Sky");
+                cp.size = new Vector3(100.0f, 100.0f, 10000.0f);
+            }
+
+            cloudRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            cloudRend.receiveShadows = false;
+
+            ParticleSystem.MainModule main = cloudSystem.main;
+            main.loop = false;
+            main.startLifetime = Mathf.Infinity;
+            main.startSpeed = 0;
+            main.startSize = cloudStartSize;
+            main.startColor = Color.white;
+
+            var emission = cloudSystem.emission;
+            emission.rateOverTime = 0; //all at once
+            emission.SetBursts(new ParticleSystem.Burst[] {
+                    new ParticleSystem.Burst(0.0f, (short)particlesPerCloud) });
+
+            var shape = cloudSystem.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            Vector3 newScale = new Vector3(UnityEngine.Random.Range(cloudScaleMin.x, cloudScaleMax.x),
+                                           UnityEngine.Random.Range(cloudScaleMin.y, cloudScaleMax.y),
+                                           UnityEngine.Random.Range(cloudScaleMin.z, cloudScaleMax.z));
+            shape.scale = newScale;
+
+            cloudGO.transform.parent = cloudManager.transform;
+            cloudGO.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        }
+    }
 
     // Erosion ***********************************************************************
     public enum ErosionType
