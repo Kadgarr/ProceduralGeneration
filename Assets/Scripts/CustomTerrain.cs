@@ -204,7 +204,30 @@ public class CustomTerrain : MonoBehaviour
 
     private void Wind()
     {
+        float[,] heightMap = terrainData.GetHeights(0, 0, HMR, HMR);
 
+        for (int y = 0; y <= HMR; y += 10)
+        {
+
+            for (int x = 0; x <= HMR; x += 1)
+            {
+
+                float thisNoise = (float)Mathf.PerlinNoise(x * 0.06f, y * 0.06f) * 20.0f * erosionStrength;
+                int nX = x;
+                int digY = y + (int)thisNoise;
+                int nY = y + 5 + (int)thisNoise;
+
+
+                if (!(nX < 0 || nX > (HMR - 1) ||
+                    nY < 0 || nY > (HMR - 1)))
+                {
+                    //Debug.Log("X: " + x + " Y: " + y);
+                    heightMap[x, digY] -= 0.001f;
+                    heightMap[nX, nY] += 0.001f;
+                }
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
     }
 
     // Water Level
