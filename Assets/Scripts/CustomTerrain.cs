@@ -57,6 +57,9 @@ public class CustomTerrain : MonoBehaviour
             case ErosionType.Wind:
                 Wind();
                 break;
+            case ErosionType.Canyon:
+                DigCanyon();
+                break;
         }
 
         smoothAmount = erosionSmoothAmount;
@@ -168,6 +171,85 @@ public class CustomTerrain : MonoBehaviour
         terrainData.SetHeights(0, 0, heightMap);
     }
 
+
+    float[,] tempHeightMap;
+    private void DigCanyon()
+    {
+
+        float digDepth = 0.05f;
+        float bankSlope = 0.001f;
+        float maxDepth = 0.0f;
+
+        tempHeightMap = terrainData.GetHeights(0, 0, HMR, HMR);
+
+        int cX = 1;
+        int cY = UnityEngine.Random.Range(10, HMR - 10);
+
+        while (cY >= 0 && cY < HMR && cX > 0 && cX < HMR)
+        {
+
+            CanyonCrawler(cX, cY, tempHeightMap[cX, cY] - digDepth, bankSlope, maxDepth);
+            cX += UnityEngine.Random.Range(1, 3);
+            cY += UnityEngine.Random.Range(-2, 3);
+        }
+        terrainData.SetHeights(0, 0, tempHeightMap);
+    }
+
+    void CanyonCrawler(int x, int y, float height, float slope, float maxDepth)
+    {
+
+        if (x < 0 || x >= HMR) return;              // Off x range of map
+        if (y < 0 || y >= HMR) return;              // Off y range of map
+        if (height <= maxDepth) return;             // Has hit lowest point
+        if (tempHeightMap[x, y] <= height) return;  // Has run into lower elevation
+
+        tempHeightMap[x, y] = height;
+
+        CanyonCrawler(x + 1, y, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x - 1, y, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x + 1, y + 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x - 1, y + 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x, y - 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x, y + 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+    }
+
+    private void Wind()
+    {
+
+        float[,] heightMap = terrainData.GetHeights(0, 0, HMR, HMR);
+
+        float windDir = 50.0f;
+        float sinAngle = -Mathf.Sin(Mathf.Deg2Rad * windDir);
+        float cosAngle = Mathf.Cos(Mathf.Deg2Rad * windDir);
+
+        for (int y = -(HMR - 1) * 2; y < HMR * 2; y += 10)
+        {
+
+            for (int x = -(HMR - 1) * 2; x < HMR * 2; x += 1)
+            {
+
+                float thisNoise = (float)Mathf.PerlinNoise(x * 0.06f, y * 0.06f) * 20.0f * erosionStrength;
+                int nX = x;
+                int digY = y + (int)thisNoise;
+                int nY = y + 5 + (int)thisNoise;
+
+                Vector2 digCoords = new Vector2(x * cosAngle - digY * sinAngle, digY * cosAngle + x * sinAngle);
+                Vector2 pileCoords = new Vector2(nX * cosAngle - nY * sinAngle, nY * cosAngle + nX * sinAngle);
+
+                if (!(pileCoords.x < 0 || pileCoords.x > (HMR - 1) ||
+                    pileCoords.y < 0 || pileCoords.y > (HMR - 1) ||
+                    (int)digCoords.x < 0 || (int)digCoords.x > (HMR - 1) ||
+                    (int)digCoords.y < 0 || (int)digCoords.y > (HMR - 1)))
+                {
+                    //Debug.Log("X: " + x + " Y: " + y);
+                    heightMap[(int)digCoords.x, (int)digCoords.y] -= 0.001f;
+                    heightMap[(int)pileCoords.x, (int)pileCoords.y] += 0.001f;
+                }
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
     private static System.Random rng = new System.Random();
     private float[,] RunRiver(Vector2 dropletPosition, float[,] heightMap, float[,] erosionMap, int hmr)
     {
@@ -202,33 +284,8 @@ public class CustomTerrain : MonoBehaviour
         return erosionMap;
     }
 
-    private void Wind()
-    {
-        float[,] heightMap = terrainData.GetHeights(0, 0, HMR, HMR);
 
-        for (int y = 0; y <= HMR; y += 10)
-        {
-
-            for (int x = 0; x <= HMR; x += 1)
-            {
-
-                float thisNoise = (float)Mathf.PerlinNoise(x * 0.06f, y * 0.06f) * 20.0f * erosionStrength;
-                int nX = x;
-                int digY = y + (int)thisNoise;
-                int nY = y + 5 + (int)thisNoise;
-
-
-                if (!(nX < 0 || nX > (HMR - 1) ||
-                    nY < 0 || nY > (HMR - 1)))
-                {
-                    //Debug.Log("X: " + x + " Y: " + y);
-                    heightMap[x, digY] -= 0.001f;
-                    heightMap[nX, nY] += 0.001f;
-                }
-            }
-        }
-        terrainData.SetHeights(0, 0, heightMap);
-    }
+    
 
     // Water Level
     public float waterHeight = 0.5f;
